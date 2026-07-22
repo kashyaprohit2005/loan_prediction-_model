@@ -1,260 +1,125 @@
-# app.py
-
 import os
 import joblib
 import gradio as gr
 
-# ==========================================================
-# Load the trained model
-# ==========================================================
+# Load Model
 try:
-    deployed_rf = joblib.load("loan_prediction_model.pkl")
-except Exception as e:
-    print(f"Warning: Model not found or error loading. {e}")
-    deployed_rf = None
+    model = joblib.load("loan_prediction_model.pkl")
+except:
+    model = None
 
-# ==========================================================
-# Prediction Function with Error Handling
-# ==========================================================
-def predict_loan_status(
-    no_of_dependents,
-    education,
-    self_employed,
-    income_annum,
-    loan_amount,
-    loan_term,
-    cibil_score,
-    residential_assets_value,
-    commercial_assets_value,
-    luxury_assets_value,
-    bank_asset_value,
-):
-    # --- CODE BLOCK: INPUT CAPTURE & VALIDATION ---
-    values = [
-        no_of_dependents, education, self_employed, income_annum, 
-        loan_amount, loan_term, cibil_score, residential_assets_value, 
-        commercial_assets_value, luxury_assets_value, bank_asset_value
-    ]
 
-    # 1. Empty input check
+def predict_loan_status(dep, edu, self_emp, income, loan, term, cibil, res, com, lux, bank):
+    values = [dep, edu, self_emp, income, loan, term, cibil, res, com, lux, bank]
+
     if any(v is None or str(v).strip() == "" for v in values):
-        return "❌ Please fill in all the input fields."
-
-    # 2. Type casting
-    try:
-        no_of_dependents = int(no_of_dependents)
-        education = int(education) # From Dropdown
-        self_employed = int(self_employed) # From Dropdown
-        income_annum = float(income_annum)
-        loan_amount = float(loan_amount)
-        loan_term = int(loan_term)
-        cibil_score = int(cibil_score)
-        residential_assets_value = float(residential_assets_value)
-        commercial_assets_value = float(commercial_assets_value)
-        luxury_assets_value = float(luxury_assets_value)
-        bank_asset_value = float(bank_asset_value)
-    except (ValueError, TypeError):
-        return "❌ Please enter valid numeric values."
-
-    # 3. Negative value check
-    if any(v < 0 for v in values):
-        return "❌ Negative values are not allowed for financial metrics."
-
-    # 4. Specific Range Validations
-    if not (300 <= cibil_score <= 900):
-        return "❌ CIBIL score must be between 300 and 900."
-    
-    if no_of_dependents > 20:
-        return "❌ Number of dependents seems unusually high (Max 20)."
-    # ----------------------------------------------
-
-    # --- CODE BLOCK: MODEL EXECUTION ---
-    if deployed_rf is None:
-        return "❌ Model failed to load. Please check your .pkl file."
+        return "❌ Please fill all fields."
 
     try:
-        # Array strictly ordered to match the X dataframe provided
-        input_data = [[
-            no_of_dependents,
-            education,
-            self_employed,
-            income_annum,
-            loan_amount,
-            loan_term,
-            cibil_score,
-            residential_assets_value,
-            commercial_assets_value,
-            luxury_assets_value,
-            bank_asset_value
-        ]]
+        dep = int(dep)
+        edu = int(edu)
+        self_emp = int(self_emp)
+        income = float(income)
+        loan = float(loan)
+        term = int(term)
+        cibil = int(cibil)
+        res = float(res)
+        com = float(com)
+        lux = float(lux)
+        bank = float(bank)
+    except:
+        return "❌ Invalid input."
 
-        prediction = deployed_rf.predict(input_data)
+    if any(v < 0 for v in [dep, income, loan, term, cibil, res, com, lux, bank]):
+        return "❌ Negative values are not allowed."
 
-        # Assuming 1 = Approved, 0 = Rejected based on standard loan datasets
-        if prediction[0] == 1:
-            return (
-                "🟢 Prediction Result\n\n"
-                "Loan Status: APPROVED\n\n"
-                "The applicant meets the criteria for this loan."
-            )
-        else:
-            return (
-                "🔴 Prediction Result\n\n"
-                "Loan Status: REJECTED\n\n"
-                "The applicant does not meet the criteria."
-            )
+    if not (300 <= cibil <= 900):
+        return "❌ CIBIL Score must be between 300-900."
 
-    except Exception as e:
-        return f"❌ Prediction failed.\n\nError: {str(e)}"
-    # -----------------------------------
+    if model is None:
+        return "❌ Model not loaded."
 
-# ==========================================================
-# Description & Footer
-# ==========================================================
-# --- CODE BLOCK: UI TEXT CONFIGURATION ---
-DESCRIPTION = """
+    pred = model.predict([[dep, edu, self_emp, income, loan, term, cibil, res, com, lux, bank]])
+
+    if pred[0] == 1:
+        return """🟢 LOAN APPROVED
+
+✅ Congratulations!
+
+The applicant satisfies the loan eligibility criteria."""
+    else:
+        return """🔴 LOAN REJECTED
+
+❌ Sorry!
+
+The applicant does not satisfy the loan eligibility criteria."""
+
+
+description = """
 <div style="text-align:center;padding:20px;border-radius:15px;
-background:linear-gradient(135deg,#0f4c81,#1e88e5);
-color:white;">
-
-<h1>🏦 Loan Approval Prediction System</h1>
-
-<h3>AI Powered Loan Eligibility Assessment</h3>
-
-<p style="font-size:16px;">
-Predict whether a loan application is likely to be
-<b>Approved</b> or <b>Rejected</b> using a trained
-<b>Random Forest Machine Learning Model</b>.
-</p>
-
+background:linear-gradient(135deg,#0f4c81,#1e88e5);color:white;">
+<h1>🏦 Loan Approval Prediction</h1>
+<p>AI Powered Loan Eligibility Assessment using Random Forest</p>
 </div>
 """
-developer_info = """
----
 
-# 👨‍💻 Developer
+developer = """
+## 👨‍💻 Developer
 
-### Rohit Kashyap
+**Rohit Kashyap**
 
-📧 **Email:** rohitkashyaprohit03456@gmail.com
+📧 rohitkashyaprohit03456@gmail.com
 
-💻 **Machine Learning Developer | Python | Data Science**
-
----
-
-## 🚀 Technologies Used
-
-- 🐍 Python
-- 🤖 Scikit-Learn
-- 🌲 Random Forest Classifier
-- 🎨 Gradio
-- ☁️ Render
-
----
-
-⭐ Thank you for using this project.
+### 🚀 Technologies
+- Python
+- Scikit-Learn
+- Gradio
+- Random Forest
+- Render
 """
+
 theme = gr.themes.Soft(
     primary_hue="blue",
     secondary_hue="sky",
-    neutral_hue="slate",
-    radius_size="lg",
-    text_size="lg",
+    radius_size="lg"
 )
-custom_css = """
-.gradio-container{
-    max-width:1100px !important;
-    margin:auto;
-}
 
-footer{
-    visibility:hidden;
-}
-
-.gr-button{
-    border-radius:12px !important;
-    font-size:18px !important;
-    font-weight:bold;
-}
-
-textarea{
-    font-size:17px !important;
-}
-
-input{
-    border-radius:10px !important;
-}
-
+css = """
+.gradio-container{max-width:1050px!important;margin:auto;}
+footer{visibility:hidden;}
 """
-gr.Number(label="👨 Number of Dependents")
 
-gr.Dropdown(
-    choices=[("Graduate",1),("Not Graduate",0)],
-    label="🎓 Education"
-)
-
-gr.Dropdown(
-    choices=[("Yes",1),("No",0)],
-    label="💼 Self Employed"
-)
-
-gr.Number(label="💰 Annual Income")
-
-gr.Number(label="🏦 Loan Amount")
-
-gr.Number(label="📅 Loan Term")
-
-gr.Number(label="📈 CIBIL Score (300-900)")
-
-gr.Number(label="🏠 Residential Assets")
-
-gr.Number(label="🏢 Commercial Assets")
-
-gr.Number(label="💎 Luxury Assets")
-
-gr.Number(label="🏛 Bank Assets")
-outputs=gr.Textbox(
-label="📊 Prediction Result",
-lines=8,
-show_copy_button=True
-)
 interface = gr.Interface(
     fn=predict_loan_status,
-    inputs=[...],
-    outputs=...,
+    inputs=[
+        gr.Number(label="👨 Dependents"),
+        gr.Dropdown([("Graduate",1),("Not Graduate",0)],label="🎓 Education"),
+        gr.Dropdown([("Yes",1),("No",0)],label="💼 Self Employed"),
+        gr.Number(label="💰 Annual Income"),
+        gr.Number(label="🏦 Loan Amount"),
+        gr.Number(label="📅 Loan Term"),
+        gr.Number(label="📈 CIBIL Score"),
+        gr.Number(label="🏠 Residential Assets"),
+        gr.Number(label="🏢 Commercial Assets"),
+        gr.Number(label="💎 Luxury Assets"),
+        gr.Number(label="🏛 Bank Assets"),
+    ],
+    outputs=gr.Textbox(label="📊 Prediction", lines=7, show_copy_button=True),
     title="🏦 Loan Approval Prediction System",
-    description=DESCRIPTION,
-    article=developer_info,
+    description=description,
+    article=developer,
     theme=theme,
-    css=custom_css,
+    css=css,
+    submit_btn="🔍 Predict",
+    clear_btn="🗑 Reset",
+    examples=[
+        [2,1,0,850000,250000,12,780,350000,120000,90000,150000],
+        [4,0,1,250000,600000,36,480,90000,20000,10000,25000]
+    ]
 )
-return f"""
-🟢 LOAN APPROVED
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-✅ Status : APPROVED
-
-🎉 Congratulations!
-
-The applicant satisfies the eligibility criteria according to the trained Random Forest model.
-
-━━━━━━━━━━━━━━━━━━━━━━
-"""
-examples=[
-    [2,1,0,850000,250000,12,780,350000,120000,90000,150000],
-    [4,0,1,250000,600000,36,480,90000,20000,10000,25000],
-]
-submit_btn="🔍 Predict Loan Status",
-clear_btn="🗑 Reset"
-
-# --------------------------------------------------------
-
-# ==========================================================
-# Launch
-# ==========================================================
 if __name__ == "__main__":
     interface.launch(
         server_name="0.0.0.0",
-        server_port=int(os.environ.get("PORT", 7860)),
+        server_port=int(os.environ.get("PORT",7860))
     )
