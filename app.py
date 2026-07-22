@@ -113,54 +113,141 @@ def predict_loan_status(
 # ==========================================================
 # --- CODE BLOCK: UI TEXT CONFIGURATION ---
 DESCRIPTION = """
-# 🏦 Loan Approval Prediction System
+<div style="text-align:center;padding:20px;border-radius:15px;
+background:linear-gradient(135deg,#0f4c81,#1e88e5);
+color:white;">
 
-This application predicts whether an applicant's loan will be **Approved** or **Rejected** using a trained **Random Forest Machine Learning Model**.
+<h1>🏦 Loan Approval Prediction System</h1>
 
-Enter the applicant's financial and personal details below to run the assessment.
+<h3>AI Powered Loan Eligibility Assessment</h3>
+
+<p style="font-size:16px;">
+Predict whether a loan application is likely to be
+<b>Approved</b> or <b>Rejected</b> using a trained
+<b>Random Forest Machine Learning Model</b>.
+</p>
+
+</div>
 """
-
 developer_info = """
-### About the Developer
-**Created by:** Rohit kashyap
+---
 
-* **LinkedIn:** [Connect with me](YOUR_LINKEDIN_URL_HERE)
-* **GitHub:** [Check out my projects](YOUR_GITHUB_URL_HERE)
-* **Instagram:** [Follow me](YOUR_INSTAGRAM_URL_HERE)
+# 👨‍💻 Developer
+
+### Rohit Kashyap
+
+📧 **Email:** rohitkashyaprohit03456@gmail.com
+
+💻 **Machine Learning Developer | Python | Data Science**
 
 ---
-### 🛠️ Tools & Technologies Used
-* **Machine Learning:** Scikit-learn (Random Forest Classifier)
-* **Web Framework:** Gradio
-* **Language:** Python
-* **Deployment:** Render
-"""
-# -----------------------------------------
 
-# ==========================================================
-# Interface Setup
-# ==========================================================
-# --- CODE BLOCK: GRADIO COMPONENTS MAPPED TO FEATURES ---
+## 🚀 Technologies Used
+
+- 🐍 Python
+- 🤖 Scikit-Learn
+- 🌲 Random Forest Classifier
+- 🎨 Gradio
+- ☁️ Render
+
+---
+
+⭐ Thank you for using this project.
+"""
+theme = gr.themes.Soft(
+    primary_hue="blue",
+    secondary_hue="sky",
+    neutral_hue="slate",
+    radius_size="lg",
+    text_size="lg",
+)
+custom_css = """
+.gradio-container{
+    max-width:1100px !important;
+    margin:auto;
+}
+
+footer{
+    visibility:hidden;
+}
+
+.gr-button{
+    border-radius:12px !important;
+    font-size:18px !important;
+    font-weight:bold;
+}
+
+textarea{
+    font-size:17px !important;
+}
+
+input{
+    border-radius:10px !important;
+}
+
+"""
+gr.Number(label="👨 Number of Dependents")
+
+gr.Dropdown(
+    choices=[("Graduate",1),("Not Graduate",0)],
+    label="🎓 Education"
+)
+
+gr.Dropdown(
+    choices=[("Yes",1),("No",0)],
+    label="💼 Self Employed"
+)
+
+gr.Number(label="💰 Annual Income")
+
+gr.Number(label="🏦 Loan Amount")
+
+gr.Number(label="📅 Loan Term")
+
+gr.Number(label="📈 CIBIL Score (300-900)")
+
+gr.Number(label="🏠 Residential Assets")
+
+gr.Number(label="🏢 Commercial Assets")
+
+gr.Number(label="💎 Luxury Assets")
+
+gr.Number(label="🏛 Bank Assets")
+outputs=gr.Textbox(
+label="📊 Prediction Result",
+lines=8,
+show_copy_button=True
+)
 interface = gr.Interface(
     fn=predict_loan_status,
-    inputs=[
-        gr.Number(label="Number of Dependents"),
-        gr.Dropdown(choices=[("Graduate", 1), ("Not Graduate", 0)], label="Education Status"),
-        gr.Dropdown(choices=[("Yes", 1), ("No", 0)], label="Self Employed?"),
-        gr.Number(label="Annual Income (₹/$)"),
-        gr.Number(label="Loan Amount Requested"),
-        gr.Number(label="Loan Term (Months/Years)"),
-        gr.Number(label="CIBIL Score (300 - 900)"),
-        gr.Number(label="Residential Assets Value"),
-        gr.Number(label="Commercial Assets Value"),
-        gr.Number(label="Luxury Assets Value"),
-        gr.Number(label="Bank Asset Value"),
-    ],
-    outputs=gr.Textbox(label="Assessment Result", lines=6),
+    inputs=[...],
+    outputs=...,
     title="🏦 Loan Approval Prediction System",
     description=DESCRIPTION,
-    article=developer_info
+    article=developer_info,
+    theme=theme,
+    css=custom_css,
 )
+return f"""
+🟢 LOAN APPROVED
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Status : APPROVED
+
+🎉 Congratulations!
+
+The applicant satisfies the eligibility criteria according to the trained Random Forest model.
+
+━━━━━━━━━━━━━━━━━━━━━━
+"""
+examples=[
+    [2,1,0,850000,250000,12,780,350000,120000,90000,150000],
+    [4,0,1,250000,600000,36,480,90000,20000,10000,25000],
+]
+submit_btn="🔍 Predict Loan Status",
+clear_btn="🗑 Reset"
+
 # --------------------------------------------------------
 
 # ==========================================================
